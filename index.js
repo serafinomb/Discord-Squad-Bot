@@ -3,7 +3,7 @@ const asciitable = require('asciitable');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-const token = 'MjMyNDIwMjA2MzczMzcxOTA1.CtOvAA.NLO1aVLsEkPSjUGU85P2klr_1v8';
+const token = 'your bot token here';
 
 let squadList = {};
 
