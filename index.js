@@ -126,16 +126,25 @@ Type \`/leave @${squadLeader.username}\` to leave the squad.`;
     }
 
     let notInSquadUserList = [];
+    let triedToKickSelf = false;
 
     for (mentionedUser of message.mentions.users.array()) {
+      if (triedToKickSelf === false && mentionedUser.id === message.author.id) {
+        triedToKickSelf = true;
+      }
+
       let isInSquad = squadList[squadLeader.id]['users'].filter(user => user.id === mentionedUser.id).length;
       if ( ! isInSquad) {
         notInSquadUserList.push(mentionedUser);
       } else {
         squadList[squadLeader.id]['users'] = squadList[squadLeader.id]['users'].filter(user => {
-          return user.id !== mentionedUser.id;
+          return user.id !== mentionedUser.id || user.id === message.author.id;
         });
       }
+    }
+
+    if (triedToKickSelf) {
+      message.channel.sendMessage(`You can't kick yourself from your own squad. Type \`/disband\` to disband it.`);
     }
 
     if (notInSquadUserList.length) {
@@ -246,12 +255,12 @@ Type \`/leave @${squadLeader.username}\` to leave the squad.`;
     }
 
     if ( ! squadList[squadLeader.id]) {
-      message.channel.sendMessage(`The user ${squadLeader.username} (${squadLeader.discriminator}) is not the leader of any squad.`);
+      message.channel.sendMessage(`${squadLeader.username} (${squadLeader.discriminator}) is not the leader of any squad.`);
       return;
     }
 
     if ( ! squadList[squadLeader.id]['isOpen']) {
-      message.channel.sendMessage(`The squad is not open. Ask the squad leader ${squadLeader.username} (${squadLeader.discriminator}) to open the squad by typing \`/open\`.`);
+      message.channel.sendMessage(`The squad is not open. Ask the squad leader ${squadLeader.username} (${squadLeader.discriminator}) to open it.`);
       return;
     }
 
@@ -272,12 +281,12 @@ Type \`/leave @${squadLeader.username}\` to leave the squad.`;
     let squadLeader = message.mentions.users.first();
 
     if ( ! squadLeader) {
-      message.channel.sendMessage(`Please @mention the squad leader to leave his/her squad. Usage: \`/join @mention\`.`);
+      message.channel.sendMessage(`Please @mention the squad leader to leave his/her squad. Usage: \`/leave @mention\`.`);
       return;
     }
 
     if ( ! squadList[squadLeader.id]) {
-      message.channel.sendMessage(`You're not the leader of any squad.`);
+      message.channel.sendMessage(`${squadLeader.username} (${squadLeader.discriminator}) is not the leader of any squad.`);
       return;
     }
 
