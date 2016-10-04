@@ -45,7 +45,7 @@ Available commands as a squad leader:
 
   else if (message.content == '/commands') {
     let text =
-`Available commands: \`/help\`, \`/commands\`, \`/create\`, \`/join\`, \`/leave\`.
+`Available commands: \`/help\`, \`/commands\`, \`/clear\`, \`/create\`, \`/join\`, \`/leave\`.
 Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/describe\`, \`/transfer\`, \`/disband\`.`;
 
     message.channel.sendMessage(text);
