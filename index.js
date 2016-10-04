@@ -20,20 +20,20 @@ client.on('message', message => {
 - Available squads can be found in the pinned messages (top right).
 
 Usage:
-/command [parameter[, …]]
+/command [parameter[ …]]
 - Elements in square brackets are optional
 
 Available commands:
 – /help  Show this help message.
 – /commands  Show all available commands.
 – /clear  Delete the channel chat history. Need the "Manage Messages" permission.
-– /create  [@mention[, …]]  Create a new squad and add the @mention-ed person(s).
+– /create  [@mention[ …]]  Create a new squad and add the @mention-ed person(s).
 – /join  @mention  Join the squad whom leader is @mention.
 – /leave  @mention  Leave the squad whom leader is @mention.
 
 Available commands as a squad leader:
-– /add  @mention[, …]]  Add the @mention-ed person(s) to the squad.
-– /kick  @mention[, …]]  Kick the @mention-ed person(s) from the squad.
+– /add  @mention[ …]]  Add the @mention-ed person(s) to the squad.
+– /kick  @mention[ …]]  Kick the @mention-ed person(s) from the squad.
 – /close  Close the squad.
 – /open  Open the squad.
 – /describe  <description>  Add a short description to the squad (maximum 150 characters). Update the description with the same command.
