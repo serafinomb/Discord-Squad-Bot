@@ -82,7 +82,7 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
     }
 
     if (triedToAddSelf) {
-      message.channel.sendMessage(`<@${squadLeader.id}> you have already joined the squad by creating it.`);
+      message.channel.sendMessage(`<@${message.author.id}> you have already joined the squad by creating it.`);
     }
 
     message.channel.sendMessage(`@here <@${squadLeader.id}> just created a new squad!`);
@@ -254,7 +254,7 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
       return;
     }
 
-    if (message.mentions.users.array().length > 1) {
+    if (message.mentions.users.size > 1) {
       message.channel.sendMessage(`<@${message.author.id}> Please @mention only one user. Usage: \`/transfer @mention\`.`);
       return;
     }
@@ -292,14 +292,14 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
   }
 
   else if (message.content == '/clear') {
-    if (process.env.ENABLE_CLEAR != 'true') {
-      message.channel.sendMessage(`<@${message.author.id}> Command disabled.`);
+    if (process.env.ENABLE_CLEAR !== 'true') {
+      message.channel.sendMessage(`<@${message.author.id}> The command \`/clear\` is disabled.`);
       return;
     }
 
     // TODO: test
     if ( ! message.member.hasPermission('MANAGE_MESSAGES')) {
-      message.channel.sendMessage(`<@${message.author.id}> You are not allowed to delete messages in this channel (MANAGE_MESSAGES).`);
+      message.channel.sendMessage(`<@${message.author.id}> You are not allowed to delete messages in this channel. Only members with "Manage Messages" permissions can use the \`/clear\` command.`);
       return;
     }
 
@@ -311,7 +311,7 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
       squadList[squadLeaderId]['pinnedMessage'].unpin();
     }
 
-    message.channel.fetchMessages({ limit: 99 })
+    message.channel.fetchMessages({ limit: 100 })
       .then(messages => message.channel.bulkDelete(messages))
       .catch(console.log);
 
