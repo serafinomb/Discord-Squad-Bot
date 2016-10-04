@@ -85,6 +85,8 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
       message.channel.sendMessage(`<@${squadLeader.id}> you have already joined the squad by creating it.`);
     }
 
+    message.channel.sendMessage(`@here <@${squadLeader.id}> just created a new squad!`);
+
     let memberTable = makeMemberTable(squadLeader);
 
     message.channel.sendMessage(memberTable)
