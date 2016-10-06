@@ -17,7 +17,7 @@ client.on('message', message => {
   if (message.content == '/help') {
     let text = '```' +
 `Info:
-- Available squads can be found in the pinned messages (top right).
+- All available squads can be found in the pinned messages (top right).
 
 Usage:
 /command [parameter[ …]]
@@ -31,7 +31,7 @@ Available commands:
 – /join  @mention  Join the squad whom leader is @mention.
 – /leave  @mention  Leave the squad whom leader is @mention.
 
-Available commands as a squad leader:
+Available squad leader commands:
 – /add  @mention[ …]]  Add the @mention-ed person(s) to the squad.
 – /kick  @mention[ …]]  Kick the @mention-ed person(s) from the squad.
 – /close  Close the squad.
@@ -46,7 +46,7 @@ Available commands as a squad leader:
   else if (message.content == '/commands') {
     let text =
 `Available commands: \`/help\`, \`/commands\`, \`/clear\`, \`/create\`, \`/join\`, \`/leave\`.
-Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/describe\`, \`/transfer\`, \`/disband\`.`;
+Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/describe\`, \`/transfer\`, \`/disband\`.`;
 
     message.channel.sendMessage(text);
   }
@@ -55,7 +55,7 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
     let squadLeader = message.author;
 
     if (squadList[squadLeader.id]) {
-      message.channel.sendMessage(`<@${message.author.id}> You are already leader of a squad. Type \`/transfer @mention\` to give the lead to somebody else. Type \`/disband\` to disband it.`);
+      message.channel.sendMessage(`<@${message.author.id}> You are already leader of a squad. Type \`/transfer @mention\` to transfer the lead to somebody else. Type \`/disband\` to disband the squad.`);
       return;
     }
 
@@ -105,7 +105,7 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
     }
 
     if (message.mentions.users.size === 0) {
-      message.channel.sendMessage(`<@${message.author.id}> Please @mention the user(s) you want to add to the squad. Usage: \`/add @mention @mention\`.`);
+      message.channel.sendMessage(`<@${message.author.id}> Please @mention the members(s) you want to add to the squad. Usage: \`/add @mention @mention\`.`);
       return;
     }
 
@@ -121,7 +121,7 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
     }
 
     if (inSquadUserList.length) {
-      message.channel.sendMessage(`<@${message.author.id}> The following users are already in the squad: ${inSquadUserList.join(', ')}.`);
+      message.channel.sendMessage(`<@${message.author.id}> The following members are already in the squad: ${inSquadUserList.join(', ')}.`);
     }
 
     let memberTable = makeMemberTable(squadLeader);
@@ -137,7 +137,7 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
     }
 
     if (message.mentions.users.size === 0) {
-      message.channel.sendMessage(`<@${message.author.id}> Please @mention the user(s) you want to kick from the squad. Usage: \`/kick @mention @mention\`.`);
+      message.channel.sendMessage(`<@${message.author.id}> Please @mention the members(s) you want to kick from the squad. Usage: \`/kick @mention @mention\`.`);
       return;
     }
 
@@ -160,11 +160,11 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
     }
 
     if (triedToKickSelf) {
-      message.channel.sendMessage(`<@${message.author.id}> You can't kick yourself from your own squad. Type \`/transfer @mention\` to give the lead to somebody else. Type \`/disband\` to disband it.`);
+      message.channel.sendMessage(`<@${message.author.id}> You can't kick yourself from your own squad. Type \`/transfer @mention\` to transfer the lead to somebody else. Type \`/disband\` to disband the squad.`);
     }
 
     if (notInSquadUserList.length) {
-      message.channel.sendMessage(`<@${message.author.id}> The following users were not in the squad: ${notInSquadUserList.join(', ')}.`);
+      message.channel.sendMessage(`<@${message.author.id}> The following members were not in the squad: ${notInSquadUserList.join(', ')}.`);
     }
 
     let memberTable = makeMemberTable(squadLeader);
@@ -255,12 +255,12 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
     }
 
     if (message.mentions.users.size > 1) {
-      message.channel.sendMessage(`<@${message.author.id}> Please @mention only one user. Usage: \`/transfer @mention\`.`);
+      message.channel.sendMessage(`<@${message.author.id}> Please @mention only one member. Usage: \`/transfer @mention\`.`);
       return;
     }
 
     if ( ! nextSquadLeader) {
-      message.channel.sendMessage(`<@${message.author.id}> Please @mention the user you want to transfer the squad to. Usage: \`/transfer @mention\`.`);
+      message.channel.sendMessage(`<@${message.author.id}> Please @mention the squad member you wish to transfer the leadership to. Usage: \`/transfer @mention\`.`);
       return;
     }
 
@@ -333,7 +333,7 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
     let squadLeader = message.mentions.users.first();
 
     if ( ! squadLeader) {
-      message.channel.sendMessage(`<@${message.author.id}> Please @mention the squad leader to join his/her squad. Usage: \`/join @mention\`.`);
+      message.channel.sendMessage(`<@${message.author.id}> Please @mention the squad leader to join their squad. Usage: \`/join @mention\`.`);
       return;
     }
 
@@ -364,7 +364,7 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
     let squadLeader = message.mentions.users.first();
 
     if ( ! squadLeader) {
-      message.channel.sendMessage(`<@${message.author.id}> Please @mention the squad leader to leave his/her squad. Usage: \`/leave @mention\`.`);
+      message.channel.sendMessage(`<@${message.author.id}> Please @mention the squad leader to leave their squad. Usage: \`/leave @mention\`.`);
       return;
     }
 
@@ -375,7 +375,7 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
 
     // TODO?: on leader leave, give ownership to the second person who joined.
     if (message.author.id === squadLeader.id) {
-      message.channel.sendMessage(`<@${message.author.id}> You can't leave your own squad. Type \`/transfer @mention\` to give the lead to somebody else. Type \`/disband\` to disband it.`);
+      message.channel.sendMessage(`<@${message.author.id}> You can't leave your own squad. Type \`/transfer @mention\` to transfer the lead to somebody else. Type \`/disband\` to disband the squad.`);
       return;
     }
 
@@ -395,7 +395,7 @@ Available commands as a squad leader: \`/add\`, \`/kick\`, \`/close\`, \`/open\`
   }
 
   else if (message.content.startsWith('/')) {
-    message.channel.sendMessage(`<@${message.author.id}> \`${message.cleanContent}\` is not a valid command. Use \`/commands\` for a list of all available commands.`);
+    message.channel.sendMessage(`<@${message.author.id}> \`${message.cleanContent}\` is not a valid command. Use \`/commands\` to list of the all available commands.`);
   }
 
 });
