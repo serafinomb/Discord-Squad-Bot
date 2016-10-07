@@ -105,7 +105,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     }
 
     if (message.mentions.users.size === 0) {
-      message.channel.sendMessage(`<@${message.author.id}> Please @mention the members(s) you want to add to the squad. Usage: \`/add @mention @mention\`.`);
+      message.channel.sendMessage(`<@${message.author.id}> Please @mention the member(s) you want to add to the squad. Usage: \`/add @mention @mention\`.`);
       return;
     }
 
@@ -147,6 +147,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     for (let mentionedUser of message.mentions.users.array()) {
       if ( ! triedToKickSelf && mentionedUser.id === message.author.id) {
         triedToKickSelf = true;
+        continue;
       }
 
       let isInSquad = squadList[squadLeader.id]['users'].filter(user => user.id === mentionedUser.id).length;
@@ -395,7 +396,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
   }
 
   else if (message.content.startsWith('/')) {
-    message.channel.sendMessage(`<@${message.author.id}> \`${message.cleanContent}\` is not a valid command. Use \`/commands\` to list of the all available commands.`);
+    message.channel.sendMessage(`<@${message.author.id}> \`${message.cleanContent}\` is not a valid command. Use \`/commands\` to list all the available commands.`);
   }
 
 });
@@ -403,8 +404,10 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
 client.login(token);
 
 let makeMemberTable = (squadLeader) => {
+  let usernameMaxLength = squadList[squadLeader.id]['users'].length > 99 ? 12 : 13;
+
   let memberList = squadList[squadLeader.id]['users'].map((user, index) => {
-    let username = user.username.substring(0, 13).trim() + (user.username.length > 13 ? '…' : '');
+    let username = user.username.substring(0, usernameMaxLength).trim() + (user.username.length > usernameMaxLength ? '…' : '');
     return { number: index+1, username: `${username} (${user.discriminator})` };
   });
 
