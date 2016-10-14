@@ -1,11 +1,10 @@
 require('dotenv').config();
 
 const asciitable = require('asciitable');
+const chrono = require('chrono-node');
 
 const Discord = require('discord.js');
 const client = new Discord.Client();
-
-const token = process.env.TOKEN;
 
 let squadList = {};
 
@@ -69,6 +68,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       users: [],
       pinnedMessage: null,
       description: '',
+      datetime: null,
       isOpen: true,
       isVisible: true
     };
@@ -400,13 +400,44 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
   }
 
+  else if (message.content.startsWith('/schedule')) {
+    let squadLeader = message.author;
+
+    if ( ! squadList[message.channel.id][squadLeader.id]) {
+      message.channel.sendMessage(`<@${message.author.id}> You are not the leader of any squad. Type \`/create\` to create a new squad.`);
+      return;
+    }
+
+    let text = message.content.substring('/schedule'.length).trim();
+
+    let date = chrono.parseDate(text);
+
+    if ( ! date) {
+      message.channel.sendMessage(`<@${message.author.id}> Please provide a valid date. Example: \`Tomorrow\`, \`Tomorrow at 8pm\`, \`20:00\`, \`Friday at 13:00\``);
+      return;
+    }
+
+    squadList[message.channel.id][squadLeader.id]['datetime'] = date.toLocaleString('en-US', {
+      day: 'numeric',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: process.env.TimeZone,
+      timeZoneName: 'short'
+    });
+
+    let memberTable = makeMemberTable(message.channel.id, squadLeader);
+    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
+  }
+
   else if (message.content.startsWith('/')) {
     message.channel.sendMessage(`<@${message.author.id}> \`${message.cleanContent}\` is not a valid command. Use \`/commands\` to list all the available commands.`);
   }
 
 });
 
-client.login(token);
+client.login(process.env.TOKEN);
 
 let makeMemberTable = (channelId, squadLeader) => {
   let usernameMaxLength = squadList[channelId][squadLeader.id]['users'].length > 99 ? 12 : 13;
@@ -439,6 +470,10 @@ let makeMemberTable = (channelId, squadLeader) => {
 
   if (squadList[channelId][squadLeader.id]['description'].length) {
     textArray.push(`Description: ${squadList[channelId][squadLeader.id]['description']}`);
+  }
+
+  if (squadList[channelId][squadLeader.id]['datetime'] !== null) {
+    textArray.push(`Scheduled for: ${squadList[channelId][squadLeader.id]['datetime']}`);
   }
 
   textArray.push(`Status: ${squadState}`);

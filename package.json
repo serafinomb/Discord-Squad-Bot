@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "asciitable": "0.0.7",
+    "chrono-node": "^1.2.4",
     "discord.js": "^9.3.0",
     "dotenv": "^2.0.0"
   },
