@@ -223,6 +223,40 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     delete squadList[message.channel.id][squadLeader.id];
   }
 
+  else if (message.content.startsWith('/disband')) {
+    let squadLeader = message.mentions.users.first();
+
+    if (message.mentions.users.size > 1) {
+      message.channel.sendMessage(`<@${message.author.id}> Please @mention only one member. Usage: \`/disband @mention\`.`);
+      return;
+    }
+
+    if ( ! squadLeader) {
+      message.channel.sendMessage(`<@${message.author.id}> Please @mention the squad leader of the squad you want to disband. Usage: \`/disband @mention\`.`);
+      return;
+    }
+
+    if ( ! squadList[message.channel.id][squadLeader.id]) {
+      message.channel.sendMessage(`<@${message.author.id}> ${squadLeader.username} (${squadLeader.discriminator}) is not the leader of any squad.`);
+      return;
+    }
+
+    if (message.author.id !== squadLeader.id && ! message.member.hasPermission('MANAGE_MESSAGES')) {
+      message.channel.sendMessage(`<@${message.author.id}> You don't have the permissions to disband someone else's squad. Only members with "Manage Messages" permissions can use the \`/disband @mention\` command.`);
+      return;
+    }
+
+    // Copied and pasted from above command. May be extracted somehow.
+    squadList[message.channel.id][squadLeader.id]['isVisible'] = false;
+
+    let memberTable = makeMemberTable(message.channel.id, squadLeader);
+    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
+    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].unpin();
+
+    // TODO: Consider storing the squad instead of deleting it
+    delete squadList[message.channel.id][squadLeader.id];
+  }
+
   else if (message.content == '/close') {
     let squadLeader = message.author;
 
