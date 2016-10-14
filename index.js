@@ -14,11 +14,13 @@ client.on('ready', () => {
 
 client.on('message', message => {
 
+  let messageContent = message.content.trimRight();
+
   if ( ! squadList[message.channel.id]) {
     squadList[message.channel.id] = {};
   }
 
-  if (message.content == '/help') {
+  if (messageContent == '/help') {
     let text = '```' +
 `Info:
 - All available squads can be found in the pinned messages (top right).
@@ -47,7 +49,7 @@ Available squad leader commands:
     message.channel.sendMessage(text);
   }
 
-  else if (message.content == '/commands') {
+  else if (messageContent == '/commands') {
     let text =
 `Available commands: \`/help\`, \`/commands\`, \`/clear\`, \`/create\`, \`/join\`, \`/leave\`.
 Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/describe\`, \`/transfer\`, \`/disband\`.`;
@@ -55,7 +57,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     message.channel.sendMessage(text);
   }
 
-  else if (message.content.startsWith('/create')) {
+  else if (messageContent.startsWith('/create')) {
     let squadLeader = message.author;
 
     if (squadList[message.channel.id][squadLeader.id]) {
@@ -101,7 +103,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       });
   }
 
-  else if (message.content.startsWith('/add')) {
+  else if (messageContent.startsWith('/add')) {
     let squadLeader = message.author;
 
     if ( ! squadList[message.channel.id][squadLeader.id]) {
@@ -133,7 +135,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
   }
 
-  else if (message.content.startsWith('/kick')) {
+  else if (messageContent.startsWith('/kick')) {
     let squadLeader = message.author;
 
     if ( ! squadList[message.channel.id][squadLeader.id]) {
@@ -177,7 +179,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
   }
 
-  else if (message.content == '/open') {
+  else if (messageContent == '/open') {
     let squadLeader = message.author;
 
     if ( ! squadList[message.channel.id][squadLeader.id]) {
@@ -191,7 +193,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
   }
 
-  else if (message.content == '/close') {
+  else if (messageContent == '/close') {
     let squadLeader = message.author;
 
     if ( ! squadList[message.channel.id][squadLeader.id]) {
@@ -205,7 +207,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
   }
 
-  else if (message.content == '/disband') {
+  else if (messageContent == '/disband') {
     let squadLeader = message.author;
 
     if ( ! squadList[message.channel.id][squadLeader.id]) {
@@ -223,7 +225,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     delete squadList[message.channel.id][squadLeader.id];
   }
 
-  else if (message.content.startsWith('/disband')) {
+  else if (messageContent.startsWith('/disband')) {
     let squadLeader = message.mentions.users.first();
 
     if (message.mentions.users.size > 1) {
@@ -257,7 +259,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     delete squadList[message.channel.id][squadLeader.id];
   }
 
-  else if (message.content == '/close') {
+  else if (messageContent == '/close') {
     let squadLeader = message.author;
 
     if ( ! squadList[message.channel.id][squadLeader.id]) {
@@ -271,7 +273,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
   }
 
-  else if (message.content.startsWith('/describe')) {
+  else if (messageContent.startsWith('/describe')) {
     let squadLeader = message.author;
 
     if ( ! squadList[message.channel.id][squadLeader.id]) {
@@ -285,7 +287,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
   }
 
-  else if (message.content.startsWith('/transfer')) {
+  else if (messageContent.startsWith('/transfer')) {
     let squadLeader = message.author;
     let nextSquadLeader = message.mentions.users.first();
 
@@ -331,7 +333,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     squadList[message.channel.id][nextSquadLeader.id]['pinnedMessage'].edit(memberTable);
   }
 
-  else if (message.content == '/clear') {
+  else if (messageContent == '/clear') {
     if (process.env.ENABLE_CLEAR !== 'true') {
       message.channel.sendMessage(`<@${message.author.id}> The command \`/clear\` is disabled.`);
       return;
@@ -369,7 +371,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     }
   }
 
-  else if (message.content.startsWith('/join')) {
+  else if (messageContent.startsWith('/join')) {
     let squadLeader = message.mentions.users.first();
 
     if ( ! squadLeader) {
@@ -400,7 +402,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
   }
 
-  else if (message.content.startsWith('/leave')) {
+  else if (messageContent.startsWith('/leave')) {
     let squadLeader = message.mentions.users.first();
 
     if ( ! squadLeader) {
@@ -434,7 +436,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
   }
 
-  else if (message.content.startsWith('/schedule')) {
+  else if (messageContent.startsWith('/schedule')) {
     let squadLeader = message.author;
 
     if ( ! squadList[message.channel.id][squadLeader.id]) {
@@ -465,7 +467,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
   }
 
-  else if (message.content.startsWith('/')) {
+  else if (messageContent.startsWith('/')) {
     message.channel.sendMessage(`<@${message.author.id}> \`${message.cleanContent}\` is not a valid command. Use \`/commands\` to list all the available commands.`);
   }
 
