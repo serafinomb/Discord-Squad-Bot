@@ -6,6 +6,8 @@ const chrono = require('chrono-node');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
+const Squad = require('./Squad.js')
+
 let squadList = {};
 
 client.on('ready', () => {
@@ -65,18 +67,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       return;
     }
 
-    squadList[message.channel.id][squadLeader.id] = {
-      leader: null,
-      users: [],
-      pinnedMessage: null,
-      description: '',
-      datetime: null,
-      isOpen: true,
-      isVisible: true
-    };
-
-    squadList[message.channel.id][squadLeader.id]['leader'] = squadLeader;
-    squadList[message.channel.id][squadLeader.id]['users'].push(squadLeader);
+    squadList[message.channel.id][squadLeader.id] = new Squad(squadLeader, [squadLeader]);
 
     let triedToAddSelf = false;
 
@@ -84,7 +75,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       if ( ! triedToAddSelf && mentionedUser.id === squadLeader.id) {
         triedToAddSelf = true;
       } else {
-        squadList[message.channel.id][squadLeader.id]['users'].push(mentionedUser);
+        squadList[message.channel.id][squadLeader.id].add(mentionedUser);
       }
     }
 
@@ -98,7 +89,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
 
     message.channel.sendMessage(memberTable)
       .then(m => {
-        squadList[message.channel.id][squadLeader.id]['pinnedMessage'] = m;
+        squadList[message.channel.id][squadLeader.id].pinnedMessage = m;
         m.pin();
       });
   }
@@ -119,11 +110,11 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     let inSquadUserList = [];
 
     for (let mentionedUser of message.mentions.users.array()) {
-      let isInSquad = squadList[message.channel.id][squadLeader.id]['users'].filter(user => user.id === mentionedUser.id).length;
+      let isInSquad = squadList[message.channel.id][squadLeader.id].has(mentionedUser);
       if (isInSquad) {
         inSquadUserList.push(mentionedUser);
       } else {
-        squadList[message.channel.id][squadLeader.id]['users'].push(mentionedUser);
+        squadList[message.channel.id][squadLeader.id].add(mentionedUser);
       }
     }
 
@@ -132,7 +123,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     }
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
+    squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
   }
 
   else if (messageContent.startsWith('/kick')) {
@@ -157,13 +148,11 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
         continue;
       }
 
-      let isInSquad = squadList[message.channel.id][squadLeader.id]['users'].filter(user => user.id === mentionedUser.id).length;
+      let isInSquad = squadList[message.channel.id][squadLeader.id].has(mentionedUser);
       if ( ! isInSquad) {
         notInSquadUserList.push(mentionedUser);
       } else {
-        squadList[message.channel.id][squadLeader.id]['users'] = squadList[message.channel.id][squadLeader.id]['users'].filter(user => {
-          return user.id !== mentionedUser.id || user.id === message.author.id;
-        });
+        squadList[message.channel.id][squadLeader.id].kick(mentionedUser);
       }
     }
 
@@ -176,7 +165,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     }
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
+    squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
   }
 
   else if (messageContent == '/open') {
@@ -187,10 +176,10 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       return;
     }
 
-    squadList[message.channel.id][squadLeader.id]['isOpen'] = true;
+    squadList[message.channel.id][squadLeader.id].open();
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
+    squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
   }
 
   else if (messageContent == '/close') {
@@ -201,10 +190,10 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       return;
     }
 
-    squadList[message.channel.id][squadLeader.id]['isOpen'] = false;
+    squadList[message.channel.id][squadLeader.id].close();
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
+    squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
   }
 
   else if (messageContent == '/disband') {
@@ -215,11 +204,11 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       return;
     }
 
-    squadList[message.channel.id][squadLeader.id]['isVisible'] = false;
+    squadList[message.channel.id][squadLeader.id].disband();
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].unpin();
+    squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
+    squadList[message.channel.id][squadLeader.id].pinnedMessage.unpin();
 
     // TODO: Consider storing the squad instead of deleting it
     delete squadList[message.channel.id][squadLeader.id];
@@ -249,28 +238,14 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     }
 
     // Copied and pasted from above command. May be extracted somehow.
-    squadList[message.channel.id][squadLeader.id]['isVisible'] = false;
+    squadList[message.channel.id][squadLeader.id].disband();
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].unpin();
+    squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
+    squadList[message.channel.id][squadLeader.id].pinnedMessage.unpin();
 
     // TODO: Consider storing the squad instead of deleting it
     delete squadList[message.channel.id][squadLeader.id];
-  }
-
-  else if (messageContent == '/close') {
-    let squadLeader = message.author;
-
-    if ( ! squadList[message.channel.id][squadLeader.id]) {
-      message.channel.sendMessage(`<@${message.author.id}> You are not the leader of any squad. Type \`/create\` to create a new squad.`);
-      return;
-    }
-
-    squadList[message.channel.id][squadLeader.id]['isOpen'] = false;
-
-    let memberTable = makeMemberTable(message.channel.id, squadLeader);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
   }
 
   else if (messageContent.startsWith('/describe')) {
@@ -281,10 +256,10 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       return;
     }
 
-    squadList[message.channel.id][squadLeader.id]['description'] = message.content.substring('/describe'.length).trim().substring(0, 150);
+    squadList[message.channel.id][squadLeader.id].describe(message.content.substring('/describe'.length).trim());
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
+    squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
   }
 
   else if (messageContent.startsWith('/transfer')) {
@@ -311,7 +286,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       return;
     }
 
-    let isInSquad = squadList[message.channel.id][squadLeader.id]['users'].filter(user => user.id === nextSquadLeader.id).length;
+    let isInSquad = squadList[message.channel.id][squadLeader.id].has(nextSquadLeader);
     if ( ! isInSquad) {
       // TODO: Check grammar, "whom the leader is"
       message.channel.sendMessage(`<@${message.author.id}> ${nextSquadLeader.username} (${nextSquadLeader.discriminator}) is not in the squad.`);
@@ -321,16 +296,10 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     squadList[message.channel.id][nextSquadLeader.id] = squadList[message.channel.id][squadLeader.id];
     delete squadList[message.channel.id][squadLeader.id];
 
-    squadList[message.channel.id][nextSquadLeader.id]['leader'] = nextSquadLeader;
-
-    squadList[message.channel.id][nextSquadLeader.id]['users'] = squadList[message.channel.id][nextSquadLeader.id]['users'].filter(user => {
-      return user.id !== nextSquadLeader.id;
-    });
-
-    squadList[message.channel.id][nextSquadLeader.id]['users'].unshift(nextSquadLeader);
+    squadList[message.channel.id][nextSquadLeader.id].transferTo(nextSquadLeader);
 
     let memberTable = makeMemberTable(message.channel.id, nextSquadLeader);
-    squadList[message.channel.id][nextSquadLeader.id]['pinnedMessage'].edit(memberTable);
+    squadList[message.channel.id][nextSquadLeader.id].pinnedMessage.edit(memberTable);
   }
 
   else if (messageContent == '/clear') {
@@ -350,7 +319,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
         continue;
       }
 
-      squadList[message.channel.id][squadLeaderId]['pinnedMessage'].unpin();
+      squadList[message.channel.id][squadLeaderId].pinnedMessage.unpin();
     }
 
     message.channel.fetchMessages({ limit: 100 })
@@ -362,10 +331,10 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
         continue;
       }
 
-      let memberTable = makeMemberTable(message.channel.id, squadList[message.channel.id][squadLeaderId]['leader']);
+      let memberTable = makeMemberTable(message.channel.id, squadList[message.channel.id][squadLeaderId].leader);
       message.channel.sendMessage(memberTable)
       .then(m => {
-        squadList[message.channel.id][squadLeaderId]['pinnedMessage'] = m;
+        squadList[message.channel.id][squadLeaderId].pinnedMessage = m;
         m.pin();
       });
     }
@@ -384,22 +353,22 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       return;
     }
 
-    if ( ! squadList[message.channel.id][squadLeader.id]['isOpen']) {
+    if ( ! squadList[message.channel.id][squadLeader.id].isOpen) {
       message.channel.sendMessage(`<@${message.author.id}> The squad is not open. Ask the squad leader ${squadLeader.username} (${squadLeader.discriminator}) to open it.`);
       return;
     }
 
-    let isInSquad = squadList[message.channel.id][squadLeader.id]['users'].filter(user => user.id === message.author.id).length;
+    let isInSquad = squadList[message.channel.id][squadLeader.id].has(message.author);
     if (isInSquad) {
       // TODO: Check grammar, "whom the leader is"
       message.channel.sendMessage(`<@${message.author.id}> You have already joined the squad whom the leader is ${squadLeader.username} (${squadLeader.discriminator}).`);
       return;
     }
 
-    squadList[message.channel.id][squadLeader.id]['users'].push(message.author);
+    squadList[message.channel.id][squadLeader.id].add(message.author);
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
+    squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
   }
 
   else if (messageContent.startsWith('/leave')) {
@@ -421,19 +390,17 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       return;
     }
 
-    let isInSquad = squadList[message.channel.id][squadLeader.id]['users'].filter(user => user.id === message.author.id).length;
+    let isInSquad = squadList[message.channel.id][squadLeader.id].has(message.author);
     if ( ! isInSquad) {
       // TODO: Check grammar, "whom the leader is"
       message.channel.sendMessage(`<@${message.author.id}> You are not in the squad whom the leader is ${squadLeader.username} (${squadLeader.discriminator}).`);
       return;
     }
 
-    squadList[message.channel.id][squadLeader.id]['users'] = squadList[message.channel.id][squadLeader.id]['users'].filter(user => {
-      return user.id !== message.author.id;
-    });
+    squadList[message.channel.id][squadLeader.id].kick(message.author);
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
+    squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
   }
 
   else if (messageContent.startsWith('/schedule')) {
@@ -453,7 +420,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       return;
     }
 
-    squadList[message.channel.id][squadLeader.id]['datetime'] = date.toLocaleString('en-US', {
+    squadList[message.channel.id][squadLeader.id].datetime = date.toLocaleString('en-US', {
       day: 'numeric',
       month: 'long',
       hour: '2-digit',
@@ -464,7 +431,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     });
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
-    squadList[message.channel.id][squadLeader.id]['pinnedMessage'].edit(memberTable);
+    squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
   }
 
   else if (messageContent.startsWith('/')) {
@@ -476,9 +443,13 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
 client.login(process.env.TOKEN);
 
 let makeMemberTable = (channelId, squadLeader) => {
-  let usernameMaxLength = squadList[channelId][squadLeader.id]['users'].length > 99 ? 12 : 13;
+  let usernameMaxLength = squadList[channelId][squadLeader.id].size > 99 ? 12 : 13;
+  let members = squadList[channelId][squadLeader.id].members;
 
-  let memberList = squadList[channelId][squadLeader.id]['users'].map((user, index) => {
+  // members = members.filter(m => m.id !== squadLeader.id);
+  // members.unshift(squadLeader);
+
+  let memberList = members.map((user, index) => {
     let username = user.username.substring(0, usernameMaxLength).trim() + (user.username.length > usernameMaxLength ? '…' : '');
     return { number: index+1, username: `${username} (${user.discriminator})` };
   });
@@ -494,22 +465,22 @@ let makeMemberTable = (channelId, squadLeader) => {
 
   let squadState = 'Undefined';
 
-  if (squadList[channelId][squadLeader.id]['isVisible'] === false) {
+  if ( ! squadList[channelId][squadLeader.id].isVisible) {
     squadState = 'Disbanded';
   } else {
-    squadState = squadList[channelId][squadLeader.id]['isOpen'] ? 'Open' : 'Closed';
+    squadState = squadList[channelId][squadLeader.id].isOpen ? 'Open' : 'Closed';
   }
 
   let textArray = [];
 
   textArray.push(`Leader: ${squadLeader.username} (${squadLeader.discriminator})`);
 
-  if (squadList[channelId][squadLeader.id]['description'].length) {
-    textArray.push(`Description: ${squadList[channelId][squadLeader.id]['description']}`);
+  if (squadList[channelId][squadLeader.id].description.length) {
+    textArray.push(`Description: ${squadList[channelId][squadLeader.id].description}`);
   }
 
-  if (squadList[channelId][squadLeader.id]['datetime'] !== null) {
-    textArray.push(`Scheduled for: ${squadList[channelId][squadLeader.id]['datetime']}`);
+  if (squadList[channelId][squadLeader.id].datetime !== null) {
+    textArray.push(`Scheduled for: ${squadList[channelId][squadLeader.id].datetime}`);
   }
 
   textArray.push(`Status: ${squadState}`);
