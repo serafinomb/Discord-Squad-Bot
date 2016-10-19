@@ -7,6 +7,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 const Squad = require('./Squad.js');
+const Member = require('./Member.js');
 
 let squadList = {};
 
@@ -60,12 +61,12 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
   }
 
   else if (messageContent.startsWith('/create')) {
-    let squadLeader = message.author;
-
-    if (squadList[message.channel.id][squadLeader.id]) {
+    if (squadList[message.channel.id][message.author.id]) {
       message.channel.sendMessage(`<@${message.author.id}> You are already leader of a squad. Type \`/transfer @mention\` to transfer the lead to somebody else. Type \`/disband\` to disband the squad.`);
       return;
     }
+
+    let squadLeader = new Member(message.author, Member.LEADER);
 
     squadList[message.channel.id][squadLeader.id] = new Squad(squadLeader, [squadLeader]);
 
@@ -75,7 +76,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       if ( ! triedToAddSelf && mentionedUser.id === squadLeader.id) {
         triedToAddSelf = true;
       } else {
-        squadList[message.channel.id][squadLeader.id].add(mentionedUser);
+        squadList[message.channel.id][squadLeader.id].add(new Member(mentionedUser));
       }
     }
 
@@ -95,12 +96,12 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
   }
 
   else if (messageContent.startsWith('/add')) {
-    let squadLeader = message.author;
-
-    if ( ! squadList[message.channel.id][squadLeader.id]) {
+    if ( ! squadList[message.channel.id][message.author.id]) {
       message.channel.sendMessage(`<@${message.author.id}> You are not the leader of any squad. Type \`/create\` to create a new squad.`);
       return;
     }
+
+    let squadLeader = squadList[message.channel.id][message.author.id].leader;
 
     if (message.mentions.users.size === 0) {
       message.channel.sendMessage(`<@${message.author.id}> Please @mention the member(s) you want to add to the squad. Usage: \`/add @mention @mention\`.`);
@@ -110,11 +111,11 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     let inSquadUserList = [];
 
     for (let mentionedUser of message.mentions.users.array()) {
-      let isInSquad = squadList[message.channel.id][squadLeader.id].has(mentionedUser);
+      let isInSquad = squadList[message.channel.id][squadLeader.id].has(mentionedUser.id);
       if (isInSquad) {
         inSquadUserList.push(mentionedUser);
       } else {
-        squadList[message.channel.id][squadLeader.id].add(mentionedUser);
+        squadList[message.channel.id][squadLeader.id].add(new Member(mentionedUser));
       }
     }
 
@@ -127,12 +128,12 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
   }
 
   else if (messageContent.startsWith('/kick')) {
-    let squadLeader = message.author;
-
-    if ( ! squadList[message.channel.id][squadLeader.id]) {
+    if ( ! squadList[message.channel.id][message.author.id]) {
       message.channel.sendMessage(`<@${message.author.id}> You are not the leader of any squad. Type \`/create\` to create a new squad.`);
       return;
     }
+
+    let squadLeader = squadList[message.channel.id][message.author.id].leader;
 
     if (message.mentions.users.size === 0) {
       message.channel.sendMessage(`<@${message.author.id}> Please @mention the members(s) you want to kick from the squad. Usage: \`/kick @mention @mention\`.`);
@@ -148,11 +149,11 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
         continue;
       }
 
-      let isInSquad = squadList[message.channel.id][squadLeader.id].has(mentionedUser);
+      let isInSquad = squadList[message.channel.id][squadLeader.id].has(mentionedUser.id);
       if ( ! isInSquad) {
         notInSquadUserList.push(mentionedUser);
       } else {
-        squadList[message.channel.id][squadLeader.id].kick(mentionedUser);
+        squadList[message.channel.id][squadLeader.id].kick(mentionedUser.id)
       }
     }
 
@@ -169,12 +170,12 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
   }
 
   else if (messageContent == '/open') {
-    let squadLeader = message.author;
-
-    if ( ! squadList[message.channel.id][squadLeader.id]) {
+    if ( ! squadList[message.channel.id][message.author.id]) {
       message.channel.sendMessage(`<@${message.author.id}> You are not the leader of any squad. Type \`/create\` to create a new squad.`);
       return;
     }
+
+    let squadLeader = squadList[message.channel.id][message.author.id].leader;
 
     squadList[message.channel.id][squadLeader.id].open();
 
@@ -183,12 +184,12 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
   }
 
   else if (messageContent == '/close') {
-    let squadLeader = message.author;
-
-    if ( ! squadList[message.channel.id][squadLeader.id]) {
+    if ( ! squadList[message.channel.id][message.author.id]) {
       message.channel.sendMessage(`<@${message.author.id}> You are not the leader of any squad. Type \`/create\` to create a new squad.`);
       return;
     }
+
+    let squadLeader = squadList[message.channel.id][message.author.id].leader;
 
     squadList[message.channel.id][squadLeader.id].close();
 
@@ -197,12 +198,12 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
   }
 
   else if (messageContent == '/disband') {
-    let squadLeader = message.author;
-
-    if ( ! squadList[message.channel.id][squadLeader.id]) {
+    if ( ! squadList[message.channel.id][message.author.id]) {
       message.channel.sendMessage(`<@${message.author.id}> You are not the leader of any squad. Type \`/create\` to create a new squad.`);
       return;
     }
+
+    squadLeader = squadList[message.channel.id][message.author.id].leader;
 
     squadList[message.channel.id][squadLeader.id].disband();
 
@@ -215,22 +216,24 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
   }
 
   else if (messageContent.startsWith('/disband')) {
-    let squadLeader = message.mentions.users.first();
-
     if (message.mentions.users.size > 1) {
       message.channel.sendMessage(`<@${message.author.id}> Please @mention only one member. Usage: \`/disband @mention\`.`);
       return;
     }
 
-    if ( ! squadLeader) {
+    let mentionedUser = message.mentions.users.first();
+
+    if ( ! mentionedUser) {
       message.channel.sendMessage(`<@${message.author.id}> Please @mention the squad leader of the squad you want to disband. Usage: \`/disband @mention\`.`);
       return;
     }
 
-    if ( ! squadList[message.channel.id][squadLeader.id]) {
-      message.channel.sendMessage(`<@${message.author.id}> ${squadLeader.username} (${squadLeader.discriminator}) is not the leader of any squad.`);
+    if ( ! squadList[message.channel.id][mentionedUser.id]) {
+      message.channel.sendMessage(`<@${message.author.id}> ${mentionedUser.username} (${mentionedUser.discriminator}) is not the leader of any squad.`);
       return;
     }
+
+    let squadLeader = squadList[message.channel.id][mentionedUser.id].leader;
 
     if (message.author.id !== squadLeader.id && ! message.member.hasPermission('MANAGE_MESSAGES')) {
       message.channel.sendMessage(`<@${message.author.id}> You don't have the permissions to disband someone else's squad. Only members with "Manage Messages" permissions can use the \`/disband @mention\` command.`);
@@ -249,48 +252,52 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
   }
 
   else if (messageContent.startsWith('/describe')) {
-    let squadLeader = message.author;
-
-    if ( ! squadList[message.channel.id][squadLeader.id]) {
+    if ( ! squadList[message.channel.id][message.author.id]) {
       message.channel.sendMessage(`<@${message.author.id}> You are not the leader of any squad. Type \`/create\` to create a new squad.`);
       return;
     }
 
-    squadList[message.channel.id][squadLeader.id].describe(message.content.substring('/describe'.length).trim());
+    let squadLeader = squadList[message.channel.id][message.author.id].leader;
+
+    squadList[message.channel.id][squadLeader.id].describe(
+      message.cleanContent.substring('/describe'.length).trim()
+    );
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
     squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
   }
 
   else if (messageContent.startsWith('/transfer')) {
-    let squadLeader = message.author;
-    let nextSquadLeader = message.mentions.users.first();
-
-    if ( ! squadList[message.channel.id][squadLeader.id]) {
+    if ( ! squadList[message.channel.id][message.author.id]) {
       message.channel.sendMessage(`<@${message.author.id}> You are not the leader of any squad. Type \`/create\` to create a new squad.`);
       return;
     }
+
+    let squadLeader = squadList[message.channel.id][message.author.id].leader;
+    let mentionedUser = message.mentions.users.first();
 
     if (message.mentions.users.size > 1) {
       message.channel.sendMessage(`<@${message.author.id}> Please @mention only one member. Usage: \`/transfer @mention\`.`);
       return;
     }
 
-    if ( ! nextSquadLeader) {
+    if ( ! mentionedUser) {
       message.channel.sendMessage(`<@${message.author.id}> Please @mention the squad member you wish to transfer the leadership to. Usage: \`/transfer @mention\`.`);
       return;
     }
 
-    if (squadLeader.id === nextSquadLeader.id) {
+    if (squadLeader.id === mentionedUser.id) {
       message.channel.sendMessage(`<@${message.author.id}> You are already the leader of the squad.`);
       return;
     }
 
-    let isInSquad = squadList[message.channel.id][squadLeader.id].has(nextSquadLeader);
+    let isInSquad = squadList[message.channel.id][squadLeader.id].has(mentionedUser.id);
     if ( ! isInSquad) {
-      message.channel.sendMessage(`<@${message.author.id}> ${nextSquadLeader.username} (${nextSquadLeader.discriminator}) is not in the squad.`);
+      message.channel.sendMessage(`<@${message.author.id}> ${mentionedUser.username} (${mentionedUser.discriminator}) is not in the squad.`);
       return;
     }
+
+    let nextSquadLeader = squadList[message.channel.id][squadLeader.id].find(mentionedUser.id);
 
     squadList[message.channel.id][nextSquadLeader.id] = squadList[message.channel.id][squadLeader.id];
     delete squadList[message.channel.id][squadLeader.id];
@@ -339,47 +346,51 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
   }
 
   else if (messageContent.startsWith('/join')) {
-    let squadLeader = message.mentions.users.first();
+    let mentionedUser = message.mentions.users.first();
 
-    if ( ! squadLeader) {
+    if ( ! mentionedUser) {
       message.channel.sendMessage(`<@${message.author.id}> Please @mention the squad leader to join their squad. Usage: \`/join @mention\`.`);
       return;
     }
 
-    if ( ! squadList[message.channel.id][squadLeader.id]) {
-      message.channel.sendMessage(`<@${message.author.id}> ${squadLeader.username} (${squadLeader.discriminator}) is not the leader of any squad.`);
+    if ( ! squadList[message.channel.id][mentionedUser.id]) {
+      message.channel.sendMessage(`<@${message.author.id}> ${mentionedUser.username} (${mentionedUser.discriminator}) is not the leader of any squad.`);
       return;
     }
+
+    let squadLeader = squadList[message.channel.id][mentionedUser.id].leader;
 
     if ( ! squadList[message.channel.id][squadLeader.id].isOpen) {
       message.channel.sendMessage(`<@${message.author.id}> The squad is not open. Ask the squad leader ${squadLeader.username} (${squadLeader.discriminator}) to open it.`);
       return;
     }
 
-    let isInSquad = squadList[message.channel.id][squadLeader.id].has(message.author);
+    let isInSquad = squadList[message.channel.id][squadLeader.id].has(message.author.id);
     if (isInSquad) {
       message.channel.sendMessage(`<@${message.author.id}> You have already joined the squad whom the leader is ${squadLeader.username} (${squadLeader.discriminator}).`);
       return;
     }
 
-    squadList[message.channel.id][squadLeader.id].add(message.author);
+    squadList[message.channel.id][squadLeader.id].add(new Member(message.author));
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
     squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
   }
 
   else if (messageContent.startsWith('/leave')) {
-    let squadLeader = message.mentions.users.first();
+    let mentionedUser = message.mentions.users.first();
 
-    if ( ! squadLeader) {
+    if ( ! mentionedUser) {
       message.channel.sendMessage(`<@${message.author.id}> Please @mention the squad leader to leave their squad. Usage: \`/leave @mention\`.`);
       return;
     }
 
-    if ( ! squadList[message.channel.id][squadLeader.id]) {
-      message.channel.sendMessage(`<@${message.author.id}> ${squadLeader.username} (${squadLeader.discriminator}) is not the leader of any squad.`);
+    if ( ! squadList[message.channel.id][mentionedUser.id]) {
+      message.channel.sendMessage(`<@${message.author.id}> ${mentionedUser.username} (${mentionedUser.discriminator}) is not the leader of any squad.`);
       return;
     }
+
+    let squadLeader = squadList[message.channel.id][mentionedUser.id].leader;
 
     // TODO?: on leader leave, give ownership to the second person who joined.
     if (message.author.id === squadLeader.id) {
@@ -387,25 +398,25 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       return;
     }
 
-    let isInSquad = squadList[message.channel.id][squadLeader.id].has(message.author);
+    let isInSquad = squadList[message.channel.id][squadLeader.id].has(message.author.id);
     if ( ! isInSquad) {
       message.channel.sendMessage(`<@${message.author.id}> You are not in the squad whom the leader is ${squadLeader.username} (${squadLeader.discriminator}).`);
       return;
     }
 
-    squadList[message.channel.id][squadLeader.id].kick(message.author);
+    squadList[message.channel.id][squadLeader.id].kick(message.author.id);
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
     squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
   }
 
   else if (messageContent.startsWith('/schedule')) {
-    let squadLeader = message.author;
-
-    if ( ! squadList[message.channel.id][squadLeader.id]) {
+    if ( ! squadList[message.channel.id][message.author.id]) {
       message.channel.sendMessage(`<@${message.author.id}> You are not the leader of any squad. Type \`/create\` to create a new squad.`);
       return;
     }
+
+    let squadLeader = squadList[message.channel.id][message.author.id].leader;
 
     let text = message.content.substring('/schedule'.length).trim();
     let date = chrono.parseDate(text);
@@ -434,14 +445,14 @@ let makeMemberTable = (channelId, squadLeader) => {
 
   let memberList = squadList[channelId][squadLeader.id].members.map((user, index) => {
     let username = user.username.substring(0, usernameMaxLength).trim() + (user.username.length > usernameMaxLength ? '…' : '');
-    return { number: index+1, username: `${username} (${user.discriminator})` };
+    return { role: user.role, username: `${username} (${user.discriminator})` };
   });
 
   let table = asciitable(memberList, {
     skinny: true,
     intersectionCharacter: 'x',
     columns: [
-      { field: 'number', name: '#' },
+      { field: 'role', name: 'R' },
       { field: 'username',  name: 'Username' }]
     }
   );

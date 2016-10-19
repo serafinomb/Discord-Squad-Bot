@@ -35,13 +35,13 @@ class Squad {
     return this.members.push(member);
   }
 
-  kick(member) {
-    if (member.id === this.leader.id) {
-      console.error("Cannot kick the leader of the squad.", { member, leader });
+  kick(id) {
+    if (id === this.leader.id) {
+      console.error("Cannot kick the leader of the squad.", { kickId: id, leader });
       return false;
     }
 
-    return this.members = this.members.filter(m => m.id !== member.id);
+    return this.members = this.members.filter(m => m.id !== id);
   }
 
   describe(description) {
@@ -71,19 +71,19 @@ class Squad {
     return this.members.length;
   }
 
-  has(member) {
-    return this.members.some(m => m.id === member.id);
+  has(id) {
+    return this.members.some(m => m.id === id);
   }
 
   /**
    * Search for a member in the squad. Return the member if found, undefined
    * otherwise.
    *
-   * @param  {Object}
-   * @return {Object|undefined}
+   * @param  {Number}
+   * @return {Member|undefined}
    */
-  find(member) {
-    return this.members.filter(m => m.id === member.id)[0];
+  find(id) {
+    return this.members.filter(m => m.id === id)[0];
   }
 
 }
