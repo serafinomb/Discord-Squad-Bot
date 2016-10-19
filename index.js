@@ -6,7 +6,7 @@ const chrono = require('chrono-node');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-const Squad = require('./Squad.js')
+const Squad = require('./Squad.js');
 
 let squadList = {};
 
@@ -288,7 +288,6 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
 
     let isInSquad = squadList[message.channel.id][squadLeader.id].has(nextSquadLeader);
     if ( ! isInSquad) {
-      // TODO: Check grammar, "whom the leader is"
       message.channel.sendMessage(`<@${message.author.id}> ${nextSquadLeader.username} (${nextSquadLeader.discriminator}) is not in the squad.`);
       return;
     }
@@ -308,7 +307,6 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       return;
     }
 
-    // TODO: test
     if ( ! message.member.hasPermission('MANAGE_MESSAGES')) {
       message.channel.sendMessage(`<@${message.author.id}> You are not allowed to delete messages in this channel. Only members with "Manage Messages" permissions can use the \`/clear\` command.`);
       return;
@@ -360,7 +358,6 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
 
     let isInSquad = squadList[message.channel.id][squadLeader.id].has(message.author);
     if (isInSquad) {
-      // TODO: Check grammar, "whom the leader is"
       message.channel.sendMessage(`<@${message.author.id}> You have already joined the squad whom the leader is ${squadLeader.username} (${squadLeader.discriminator}).`);
       return;
     }
@@ -392,7 +389,6 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
 
     let isInSquad = squadList[message.channel.id][squadLeader.id].has(message.author);
     if ( ! isInSquad) {
-      // TODO: Check grammar, "whom the leader is"
       message.channel.sendMessage(`<@${message.author.id}> You are not in the squad whom the leader is ${squadLeader.username} (${squadLeader.discriminator}).`);
       return;
     }
@@ -412,7 +408,6 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
     }
 
     let text = message.content.substring('/schedule'.length).trim();
-
     let date = chrono.parseDate(text);
 
     if ( ! date) {
@@ -420,15 +415,7 @@ Available squad leader commands: \`/add\`, \`/kick\`, \`/close\`, \`/open\`, \`/
       return;
     }
 
-    squadList[message.channel.id][squadLeader.id].datetime = date.toLocaleString('en-US', {
-      day: 'numeric',
-      month: 'long',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-      timeZone: process.env.TimeZone,
-      timeZoneName: 'short'
-    });
+    squadList[message.channel.id][squadLeader.id].schedule(date);
 
     let memberTable = makeMemberTable(message.channel.id, squadLeader);
     squadList[message.channel.id][squadLeader.id].pinnedMessage.edit(memberTable);
@@ -444,12 +431,8 @@ client.login(process.env.TOKEN);
 
 let makeMemberTable = (channelId, squadLeader) => {
   let usernameMaxLength = squadList[channelId][squadLeader.id].size > 99 ? 12 : 13;
-  let members = squadList[channelId][squadLeader.id].members;
 
-  // members = members.filter(m => m.id !== squadLeader.id);
-  // members.unshift(squadLeader);
-
-  let memberList = members.map((user, index) => {
+  let memberList = squadList[channelId][squadLeader.id].members.map((user, index) => {
     let username = user.username.substring(0, usernameMaxLength).trim() + (user.username.length > usernameMaxLength ? '…' : '');
     return { number: index+1, username: `${username} (${user.discriminator})` };
   });
